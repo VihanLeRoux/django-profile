@@ -1,0 +1,77 @@
+{% extends 'core/no_carousel.html' %}
+{% load hitcount_tags %}
+
+    {% block content %}
+        <div class="row">
+            <div class="col-20 left post-list-item post-content">
+                <img class="profile-view-pic" src="{{ profile.profile_picture.url }}"/>
+                <h1 class="">{{ profile.user }}</h1>
+                <div class="">
+                    <h3 class="">About</h3>
+                    <p>{{ profile.about }}</p>
+                </div>
+                {% if user.is_authenticated %}
+                    {% if user == profile.user %}
+                <a class="link-button show-form">Edit Profile</a>
+                
+                <form class="hide-form" method="post">
+                    <h3 class="hide-form-button">X</h3>
+                    {% csrf_token %}
+                    {{ user_form }}
+                    {{ profile_form }}
+                    <input type="submit" value="Submit">
+                </form>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="col-60 center">
+                <h3>User Posts</h3>
+                {% for post in posts %}
+                <div class="post-list-item">
+                    <img class="blog-img" src="{{ post.image.url }}"/>
+                    <div class="post-content">
+                        <h3>{{ post.title }}</h3>
+                        <small>
+                            {{ post.published_date|date:'d F, Y' }} |
+                            By {{ post.author }} |
+                            Reads: {% get_hit_count for post %}
+                        </small>
+                        <br/><br/>
+                        <p>{{ post.text|truncatechars:200 }}</p>
+                        <a href="{% url 'blog:detail' post.id %}" class="link-button">Read more</a>
+                        <a href="{% url 'blog:detail' post.id %}#comments" class="link-button">Comment</a>
+                    </div>
+                </div>                
+                {% endfor %}
+                <h3>User Comments</h3>
+                {% for comment in comments %}
+                <div class="comment">
+                    <a href="{% url 'user_profile:profile_view' pk=comment.author.pk %}">
+                        <img class="comment-user" src='/media/{{ comment.author.profile.profile_picture }}'/>
+                    </a>
+                    <small>
+                        <bold>{{ comment.author }}</bold> | 
+                        {{ comment.created_date }}
+                    </small>
+                    <p>{{ comment.comment }}</p>
+                    <a class="link-button" href="{% url 'blog:detail' comment.post.id %}">Read post</a>
+                </div>
+                
+                {% empty %}
+                <p>This user has no comments</p>
+                
+                {% endfor %}
+            </div>
+            <div class="col-20 right">
+                <form action="{% url 'query:query_results' %}">
+                    <input type="text" placeholder="Search..." name="q">
+                    <button type="submit">Search</button>
+                </form>
+                </br>
+                <h4>Top posts</h4>
+                {% for post in top_hits %}
+                <p><a href="{% url 'blog:detail' post.id %}">{{ post.title }}</a></p>
+                {% endfor %}
+            </div>
+        </div>
+    {% endblock %}
